@@ -10,6 +10,9 @@ import com.example.demo.dto.DesignationCreateDTO;
 import com.example.demo.dto.DesignationResponseDTO;
 import com.example.demo.dto.DesignationUpdateDTO;
 import com.example.demo.entity.Designation;
+import com.example.demo.enums.ErrorCodeEnum;
+import com.example.demo.exception.DuplicateResourceException;
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repo.DesignationRepo;
 import com.example.demo.service.DesignationService;
 
@@ -27,6 +30,18 @@ public class DesignationServiceImpl implements DesignationService {
 	@Override
 	public DesignationResponseDTO createDesignation(DesignationCreateDTO createDTO) {
 		log.info("Create designation DTO : {}", createDTO);
+
+		// Check duplicate title
+		if (designationRepo.existsByName(createDTO.getName())) {
+			throw new DuplicateResourceException(ErrorCodeEnum.DUPLICATE_DESIGNATION_NAME.getErrorCode(),
+					ErrorCodeEnum.DUPLICATE_DESIGNATION_NAME.getErrorMessage() + " : " + createDTO.getName());
+		}
+
+		// Check duplicate code
+		if (designationRepo.existsByCode(createDTO.getCode())) {
+			throw new DuplicateResourceException(ErrorCodeEnum.DUPLICATE_DESIGNATION_CODE.getErrorCode(),
+					ErrorCodeEnum.DUPLICATE_DESIGNATION_CODE.getErrorMessage() + " : " + createDTO.getCode());
+		}
 
 		Designation designation = new Designation();
 		designation.setName(createDTO.getName());
@@ -59,7 +74,9 @@ public class DesignationServiceImpl implements DesignationService {
 	public DesignationResponseDTO getDesignationById(Long designationId) {
 		log.info("Fetching designation by ID : {}", designationId);
 
-		Designation designation = designationRepo.findById(designationId).orElse(null);
+		Designation designation = designationRepo.findById(designationId).orElseThrow(
+				() -> new ResourceNotFoundException(ErrorCodeEnum.RESOURCE_WITH_ID_NOT_FOUND.getErrorCode(),
+						ErrorCodeEnum.RESOURCE_WITH_ID_NOT_FOUND.getErrorMessage() + " : " + designationId));
 
 		DesignationResponseDTO response = modelMapper.map(designation, DesignationResponseDTO.class);
 
@@ -72,7 +89,9 @@ public class DesignationServiceImpl implements DesignationService {
 	public DesignationResponseDTO deleteDesignationById(Long designationId) {
 		log.info("Deleting designation with ID : {}", designationId);
 
-		Designation designation = designationRepo.findById(designationId).orElse(null);
+		Designation designation = designationRepo.findById(designationId).orElseThrow(
+				() -> new ResourceNotFoundException(ErrorCodeEnum.RESOURCE_WITH_ID_NOT_FOUND.getErrorCode(),
+						ErrorCodeEnum.RESOURCE_WITH_ID_NOT_FOUND.getErrorMessage() + " : " + designationId));
 
 		designationRepo.delete(designation);
 
@@ -108,10 +127,29 @@ public class DesignationServiceImpl implements DesignationService {
 	}
 
 	@Override
-	public DesignationResponseDTO updateDesignationById(Long designationId, DesignationUpdateDTO updateDTO) {
+	public DesignationResponseDTO updateDesignationById(Long id, DesignationUpdateDTO updateDTO) {
 		log.info("Update designation DTO : {}", updateDTO);
 
-		Designation designation = designationRepo.findById(designationId).orElse(null);
+		Designation designation = designationRepo.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException(
+						ErrorCodeEnum.RESOURCE_WITH_ID_NOT_FOUND.getErrorCode(),
+						ErrorCodeEnum.RESOURCE_WITH_ID_NOT_FOUND.getErrorMessage() + " : " + id + " || Update failed"));
+
+		// Check duplicate title
+		if (designationRepo.existsByName(updateDTO.getName())
+				&& !updateDTO.getName().equalsIgnoreCase(designation.getName())) {
+
+			throw new DuplicateResourceException(ErrorCodeEnum.DUPLICATE_DESIGNATION_NAME.getErrorCode(),
+					ErrorCodeEnum.DUPLICATE_DESIGNATION_NAME.getErrorMessage() + " : " + updateDTO.getName());
+		}
+
+		// Check duplicate code
+		if (designationRepo.existsByCode(updateDTO.getCode())
+				&& !updateDTO.getCode().equalsIgnoreCase(designation.getCode())) {
+
+			throw new DuplicateResourceException(ErrorCodeEnum.DUPLICATE_DESIGNATION_CODE.getErrorCode(),
+					ErrorCodeEnum.DUPLICATE_DESIGNATION_CODE.getErrorMessage() + " : " + updateDTO.getCode());
+		}
 
 		modelMapper.map(updateDTO, designation);
 

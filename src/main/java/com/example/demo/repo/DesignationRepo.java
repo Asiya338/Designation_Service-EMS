@@ -10,4 +10,6 @@ public interface DesignationRepo extends JpaRepository<Designation, Long> {
 
 	boolean existsByName(String name);
 
+	boolean existsByCode(String code);
+
 }

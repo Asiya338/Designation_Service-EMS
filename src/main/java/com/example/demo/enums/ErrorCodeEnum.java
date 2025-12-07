@@ -12,9 +12,9 @@ public enum ErrorCodeEnum {
 	HTTP_MESSAGE_NOT_READABLE_EXCEPTION("10003", "Malformed JSON request.."),
 	DATA_INTEGRITY_VIOLATION_EXCEPTION("10004", "Data integrity violation error.."),
 	ILLEGAL_ARGUMENT_EXCEPTION("10005", "Illegal argument provided.."), PROPERTY_REFERENCE_EXCEPTION("10006", ""),
-	DUPLICATE_DEPT_CODE("10006", "Duplicate department code provided."),
-	DUPLICATE_DEPT_HEAD_ID("10007", "Duplicate department head id provided."),
-	RESOURCE_WITH_ID_NOT_FOUND("10008", "No Department with department ID")
+	RESOURCE_WITH_ID_NOT_FOUND("10008", "No Department with department ID"),
+	DUPLICATE_DESIGNATION_NAME("10009", "Duplicate designation name provided."),
+	DUPLICATE_DESIGNATION_CODE("10010", "Duplicate designation code provided."),
 
 	;
 
