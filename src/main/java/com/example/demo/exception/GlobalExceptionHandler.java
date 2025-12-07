@@ -1,0 +1,134 @@
+package com.example.demo.exception;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+
+import org.slf4j.MDC;
+import org.springframework.data.core.PropertyReferenceException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.example.demo.constants.Constant;
+import com.example.demo.dto.ErrorResponse;
+import com.example.demo.enums.ErrorCodeEnum;
+
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<ErrorResponse> resourceNotFound(ResourceNotFoundException ex, HttpServletRequest req) {
+		log.error("Resource not found exception occured : {} ", ex.getMessage(), ex);
+
+		ErrorResponse response = new ErrorResponse(ex.getErrorCode(), ex.getErrorMessage(), req.getRequestURI(),
+				MDC.get(Constant.traceId), LocalDateTime.now(), req.getMethod());
+
+		log.error("ResourceNotFoundException || Error response : {} ", response);
+
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+	}
+
+	@ExceptionHandler(BadRequestException.class)
+	public ResponseEntity<ErrorResponse> badRequest(BadRequestException ex, HttpServletRequest req) {
+		log.error("Bad Request Exception occured : {} ", ex.getMessage(), ex);
+
+		ErrorResponse response = new ErrorResponse(ex.getErrorCode(), ex.getErrorMessage(), req.getRequestURI(),
+				MDC.get(Constant.traceId), LocalDateTime.now(), req.getMethod());
+
+		log.error("BadRequestException || Error response : {} ", response);
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
+
+	@ExceptionHandler(DuplicateResourceException.class)
+	public ResponseEntity<ErrorResponse> duplicateRequest(DuplicateResourceException ex, HttpServletRequest req) {
+		log.error("Duplicate Resource Exception occured : {} ", ex.getMessage(), ex);
+
+		ErrorResponse response = new ErrorResponse(ex.getErrorCode(), ex.getErrorMessage(), req.getRequestURI(),
+				MDC.get(Constant.traceId), LocalDateTime.now(), req.getMethod());
+
+		log.error("DuplicateResourceException || Error response : {} ", response);
+
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+	}
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ErrorResponse> validationError(MethodArgumentNotValidException ex, HttpServletRequest req) {
+		log.error("Validation Exception occured : {} ", ex.getMessage(), ex);
+
+		String msg = ex.getBindingResult().getFieldErrors().stream().map(FieldError::getDefaultMessage).findFirst()
+				.orElse("Invalid input");
+
+		ErrorResponse response = new ErrorResponse(ErrorCodeEnum.METHOD_ARGUMENT_INVALID.getErrorCode(), msg,
+				req.getRequestURI(), MDC.get(Constant.traceId), LocalDateTime.now(), req.getMethod());
+
+		log.error("ValidationException || Error response : {} ", response);
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
+
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ErrorResponse> handleJsonParseError(HttpMessageNotReadableException ex,
+			HttpServletRequest req) {
+
+		log.error("Http Message Not Readable Exception Occured : {}", ex.getMessage(), ex);
+
+		String message = ex.getMessage();
+
+		if (ex.getCause() instanceof DateTimeParseException) {
+			message = "Invalid date format. Expected yyyy-MM-dd, e.g., 2003-02-15";
+		}
+
+		ErrorResponse response = new ErrorResponse(ErrorCodeEnum.HTTP_MESSAGE_NOT_READABLE_EXCEPTION.getErrorCode(),
+				message, req.getRequestURI(), MDC.get(Constant.traceId), LocalDateTime.now(), req.getMethod());
+
+		log.error("HttpMessageNotReadableException || Error response : {} ", response);
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
+
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ErrorResponse> illegalArgsRequest(IllegalArgumentException ex, HttpServletRequest req) {
+		log.error("IllegalArgumentException occured : {} ", ex.getMessage(), ex);
+
+		ErrorResponse response = new ErrorResponse(ErrorCodeEnum.ILLEGAL_ARGUMENT_EXCEPTION.getErrorCode(),
+				ex.getMessage(), req.getRequestURI(), MDC.get(Constant.traceId), LocalDateTime.now(), req.getMethod());
+
+		log.error("IllegalArgumentException || Error response : {} ", response);
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
+
+	@ExceptionHandler(PropertyReferenceException.class)
+	public ResponseEntity<ErrorResponse> propertyReferenceException(PropertyReferenceException ex,
+			HttpServletRequest req) {
+		log.error("PropertyReferenceException occured : {} ", ex.getMessage(), ex);
+
+		ErrorResponse response = new ErrorResponse(ErrorCodeEnum.PROPERTY_REFERENCE_EXCEPTION.getErrorCode(),
+				ex.getMessage(), req.getRequestURI(), MDC.get(Constant.traceId), LocalDateTime.now(), req.getMethod());
+
+		log.error("PropertyReferenceException || Error response : {} ", response);
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
+
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<ErrorResponse> genericException(Exception ex, HttpServletRequest req) {
+		log.error("Application Exception occured : {} ", ex.getMessage(), ex);
+
+		ErrorResponse response = new ErrorResponse(ErrorCodeEnum.GENERIC_EXCEPTION.getErrorCode(), ex.getMessage(),
+				req.getRequestURI(), MDC.get(Constant.traceId), LocalDateTime.now(), req.getMethod());
+
+		log.error("Application Exception || Error response : {} ", response);
+
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+	}
+}
