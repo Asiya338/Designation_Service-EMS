@@ -101,8 +101,31 @@
    			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
    			<version>2.7.0</version>
 		</dependency>
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
 		
 	</dependencies>
+	
+	<profiles>
+			<profile>
+				<id>local</id>
+				<activation>
+					<activeByDefault>true</activeByDefault>
+				</activation>
+				<properties>
+					<spring.profiles.active>local</spring.profiles.active>
+					<logging.path>
+						D:\\SpringWebProj\\logs\\employee-management-system
+					</logging.path>
+				</properties>
+			</profile>
+	</profiles>
 
 	<build>
 		<plugins>

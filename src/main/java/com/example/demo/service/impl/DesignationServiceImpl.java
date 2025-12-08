@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.dto.DesignationCreateDTO;
@@ -126,6 +127,7 @@ public class DesignationServiceImpl implements DesignationService {
 		return response;
 	}
 
+	@CacheEvict(value = "designationCache", key = "#dsgnId")
 	@Override
 	public DesignationResponseDTO updateDesignationById(Long id, DesignationUpdateDTO updateDTO) {
 		log.info("Update designation DTO : {}", updateDTO);
